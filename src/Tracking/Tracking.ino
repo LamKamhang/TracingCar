@@ -1,4 +1,5 @@
 #include "Motor.h"
+#include "PID.h"
 #include "util.hpp"
 
 //定义七路灰度传感器接口
@@ -45,6 +46,14 @@ int flag = 0;        //定义状态变量
 int next_line = 3;      
 int next_flag = 0;
 
+const unsigned char gray_id_1 = 1;
+const unsigned char gray_id_2 = 1 << 1;
+const unsigned char gray_id_3 = 1 << 2;
+const unsigned char gray_id_4 = 1 << 3;
+const unsigned char gray_id_5 = 1 << 4;
+const unsigned char gray_id_6 = 1 << 5;
+const unsigned char gray_id_7 = 1 << 6;
+
 //循迹
 Motor motor(
 	left_front_wheel1,
@@ -57,6 +66,28 @@ Motor motor(
 	right_behind_wheel2
 );
 
+/**************************************************************/
+// PID循迹
+    // kp,  ki,   kd
+PID pid(10, 0.02, 20);
+
+void tracking_pid()
+{
+  // first readsensor
+  readsensor();
+  // output --> negative --> need to turn left
+  // output --> positive --> need to turn right
+  int output = pid.get_output(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
+  Serial.print("state: ");
+  Serial.println(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
+  Serial.print("output: ");
+  Serial.println(output);
+
+  // 在mot函数里已经自动约束了。
+  motor.mot(255+output, 255-output);
+}
+
+/**************************************************************/
 
 void readsensor() 
 {
@@ -69,17 +100,9 @@ void readsensor()
   S7 = digitalRead(sensor7);
 }
 
-const unsigned char gray_id_1 = 1;
-const unsigned char gray_id_2 = 1 << 1;
-const unsigned char gray_id_3 = 1 << 2;
-const unsigned char gray_id_4 = 1 << 3;
-const unsigned char gray_id_5 = 1 << 4;
-const unsigned char gray_id_6 = 1 << 5;
-const unsigned char gray_id_7 = 1 << 6;
-
-int checkState(unsigned char state)
+MotorState checkState(unsigned char state)
 {
-    static int pre_state;
+    static MotorState pre_state;
     switch (state)
     {
         case G0011100://345
@@ -125,13 +148,13 @@ void tracking()
 {
   // first readsensor
   readsensor();
-  int state1 = checkState(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
+  MotorState state1 = checkState(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
   delay(t);
   readsensor();
-  int state2 = checkState(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
+  MotorState state2 = checkState(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
   delay(t);
   readsensor();
-  int state3 = checkState(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
+  MotorState state3 = checkState(S1*gray_id_1 | S2*gray_id_2 | S3*gray_id_3 | S4*gray_id_4 | S5*gray_id_5 | S6*gray_id_6 | S7*gray_id_7);
 
    if (state1 == state2 && state2 == state3)
      motor.changeState(state1);

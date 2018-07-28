@@ -41,8 +41,8 @@ public:
     void init();
     void changeState(MotorState state);
 	void mot(int left_velocity,int right_velocity);
-private:
-    
+private:    
+    int constrain_(int velocity);
     void fast_straight();
     void normal_straight();
     void normal_backward();

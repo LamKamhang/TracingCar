@@ -113,6 +113,9 @@ void Motor::rotationR()
 }
 
 void Motor::mot(int left_velocity,int right_velocity) {
+    left_velocity = constrain_(left_velocity);
+    right_velocity = constrain_(right_velocity);
+
 	if (left_velocity >= 0 && right_velocity >= 0)
 	{
         digitalWrite(left_front_wheel2, LOW);
@@ -157,4 +160,14 @@ void Motor::mot(int left_velocity,int right_velocity) {
         digitalWrite(right_behind_wheel1, LOW);
         analogWrite(right_behind_wheel2, -right_velocity);//后右轮反转
 	}
+}
+
+int Motor::constrain_(int velocity)
+{
+    if (velocity < -255)
+        return -255;
+    else if (velocity > 255)
+        return 255;
+    else
+        return velocity;
 }
