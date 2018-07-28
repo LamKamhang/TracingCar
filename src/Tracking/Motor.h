@@ -13,6 +13,7 @@
 enum MotorState {
 	_FAST_STRAIGHT_,
 	_NORMAL_STRAIGHT_,
+    _NORMAL_BACKWARD_,
 	_STOP_,
 	_FAST_LEFT_,
 	_NORMAL_LEFT_,
@@ -44,6 +45,7 @@ private:
     
     void fast_straight();
     void normal_straight();
+    void normal_backward();
     void fast_left();
     void fast_right();
     void normal_left();

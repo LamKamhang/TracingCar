@@ -1,4 +1,5 @@
 #include "Motor.h"
+#include "util.hpp"
 
 //定义七路灰度传感器接口
 #define sensor1 30   
@@ -28,7 +29,6 @@ const int rightEchoPin = 45;
 //定义三路灰度传感器
 const int grey_a = 19;		//左前的传感器，作为4号中断，进行减速，应调节current_velocity
 const int grey_b = 18;		//中间靠前的传感器，作为5号中断，将速度减为0
-const int grey_c = 17;
 
 const int BLACK = 1;
 const int WHITE = 0;		//定义颜色
@@ -36,12 +36,16 @@ const int WHITE = 0;		//定义颜色
 int S1, S2, S3, S4, S5, S6, S7;  //七路巡线返回值
 const int t = 1;
 
-int basic_velocity;		//定义正常速度
-int current_velocity;		//定义当前速度
+int near_Barrier = 0;      //定义避障状态变量
+
 float distance;				//定义最小距离变量
-int near_Barrier = 0;			//定义避障状态变量
 int stop_five_sec = 0;		//定义静止函数
-int line;
+int line = 6;
+int flag = 0;        //定义状态变量
+int next_line = 3;      
+int next_flag = 0;
+
+//循迹
 Motor motor(
 	left_front_wheel1,
 	left_front_wheel2,
@@ -54,7 +58,8 @@ Motor motor(
 );
 
 
-void readsensor() {
+void readsensor() 
+{
   S1 = digitalRead(sensor1);
   S2 = digitalRead(sensor2);
   S3 = digitalRead(sensor3);
@@ -63,241 +68,6 @@ void readsensor() {
   S6 = digitalRead(sensor6);
   S7 = digitalRead(sensor7);
 }
-
-// void mot(int left_velocity,int right_velocity) {
-//   digitalWrite(left_front_wheel2, LOW);
-//   analogWrite(left_front_wheel1, left_velocity);  //前左轮正转
-//   digitalWrite(left_behind_wheel1, LOW);
-//   analogWrite(left_behind_wheel2, left_velocity); //后左轮正转
-//   digitalWrite(right_front_wheel1, LOW);
-//   analogWrite(right_front_wheel2, right_velocity);//前右轮正转
-//   digitalWrite(right_behind_wheel2, LOW);
-//   analogWrite(right_behind_wheel1, right_velocity);//后右轮正转
-// }
-
-// void mot_reverse(int left_velocity, int right_velocity) {
-// 	digitalWrite(left_front_wheel1, LOW);
-// 	analogWrite(left_front_wheel2, left_velocity);  //前左轮反转
-// 	digitalWrite(left_behind_wheel2, LOW);
-// 	analogWrite(left_behind_wheel1, left_velocity); //后左轮反转
-// 	digitalWrite(right_front_wheel2, LOW);
-// 	analogWrite(right_front_wheel1, right_velocity);//前右轮反转
-// 	digitalWrite(right_behind_wheel1, LOW);
-// 	analogWrite(right_behind_wheel2, right_velocity);//后右轮反转
-// }
-
-// void straight_test() {
-//   readsensor();
-//   /*if (ramp==0 && avo == 1 && SL == BLACK && (S3 == BLACK || S2 == BLACK || S4 == BLACK)) {
-//   delay(t);
-//   readsensor;
-//   if (SL == BLACK) {
-//   delay(t);
-//   readsensor;
-//   if (SL == BLACK) {
-//   ramp = 1;
-//   }
-//   }
-//   }
-//   */
-//   if (S3 == BLACK && S4 == BLACK && S5 == BLACK && S2 == WHITE && S6 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S3 == BLACK && S4 == BLACK && S5 == BLACK && S2 == WHITE && S6 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S3 == BLACK && S4 == BLACK && S5 == BLACK && S2 == WHITE && S6 == WHITE) {
-//         mot(current_velocity, current_velocity);
-//       }
-//     }
-//   }
-
-//   else if (S3 == BLACK && S4 == BLACK && S5 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S3 == BLACK && S4 == BLACK && S5 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S3 == BLACK && S4 == BLACK && S5 == WHITE) {
-//         mot((current_velocity-100>0? current_velocity:0), current_velocity);
-//       }
-//     }
-//   }
-  
-
-//   else if (S4 == BLACK && S5 == BLACK && S3 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S4 == BLACK && S5 == BLACK && S3 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S4 == BLACK && S5 == BLACK && S3 == WHITE) {
-//         mot(current_velocity, (current_velocity - 100>0 ? current_velocity : 0));
-//       }
-//     }
-//   }
-
-//   else if (S2 == BLACK && S3 == BLACK && S4 == BLACK && S1 == WHITE && S5 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S2 == BLACK && S3 == BLACK && S4 == BLACK && S1 == WHITE && S5 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S2 == BLACK && S3 == BLACK && S4 == BLACK && S1 == WHITE && S5 == WHITE) {
-//         mot((current_velocity - 150>0 ? current_velocity : 0), current_velocity);
-//       }
-//     }
-//   }
-
-//   else if (S4 == BLACK && S5 == BLACK && S6 == BLACK && S3 == WHITE && S7 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S4 == BLACK && S5 == BLACK && S6 == BLACK && S3 == WHITE && S7 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S4 == BLACK && S5 == BLACK && S6 == BLACK && S3 == WHITE && S7 == WHITE) {
-//         mot(current_velocity, (current_velocity - 150>0 ? current_velocity : 0));
-//       }
-//     }
-//   }
-
-//    else if (S2 == BLACK && S3 == BLACK && S4 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S2 == BLACK && S3 == BLACK && S4 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S2 == BLACK && S3 == BLACK && S4 == WHITE) {
-//         mot(0, current_velocity);
-//       }
-//     }
-//   }
-
-//    else if (S5 == BLACK && S6 == BLACK && S4 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S5 == BLACK && S6 == BLACK && S4 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S5 == BLACK && S6 == BLACK && S4 == WHITE) {
-//         mot(current_velocity, 0);
-//       }
-//     }
-//   }
-
-//    else if (S1 == BLACK && S2 == BLACK && S3 == BLACK) {
-//     delay(t);
-//     readsensor();
-//     if (S1 == BLACK && S2 == BLACK && S3 == BLACK) {
-//       delay(t);
-//       readsensor();
-//       if (S1 == BLACK && S2 == BLACK && S3 == BLACK) {
-//         mot(0, current_velocity);
-//       }
-//     }
-//   }
-  
-//    else if (S5 == BLACK && S6 == BLACK && S7 == BLACK) {
-//     delay(t);
-//     readsensor();
-//     if (S5 == BLACK && S6 == BLACK && S7 == BLACK) {
-//       delay(t);
-//       readsensor();
-//       if (S5 == BLACK && S6 == BLACK && S7 == BLACK) {
-//         mot(current_velocity, 0);
-//       }
-//     }
-//   }
-  
-//    else if (S1 == BLACK && S2 == BLACK && S3 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S1 == BLACK && S2 == BLACK && S3 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S1 == BLACK && S2 == BLACK && S3 == WHITE) {
-//         mot(0, current_velocity);
-//       }
-//     }
-//   }
-  
-
-//   else if (S6 == BLACK && S7 == BLACK && S5 == WHITE) {
-//     delay(t);
-//     readsensor();
-//     if (S6 == BLACK && S7 == BLACK && S5 == WHITE) {
-//       delay(t);
-//       readsensor();
-//       if (S6 == BLACK && S7 == BLACK && S5 == WHITE) {
-//         mot(current_velocity, 0);
-//       }
-//     }
-//   }
-
-//   else if (S2 == WHITE && S1 == BLACK) {
-//     delay(t);
-//     readsensor();
-//     if (S2 == WHITE && S1 == BLACK) {
-//       delay(t);
-//       readsensor();
-//       if (S2 == WHITE && S1 == BLACK) {
-//         mot(0, current_velocity);
-//       }
-//     }
-//   }
-
-//   else if (S6 == WHITE && S7 == BLACK) {
-//     delay(t);
-//     readsensor();
-//     if (S6 == WHITE && S7 == BLACK) {
-//       delay(t);
-//       readsensor();
-//       if (S6 == WHITE && S7 == BLACK) {
-//         mot(current_velocity, 0);
-//       }
-//     }
-//   }
-
-//   else if (S2 == BLACK) {
-//     delay(t);
-//     readsensor();
-//     if (S2 == BLACK) {
-//       delay(t);
-//       readsensor();
-//       if (S2 == BLACK) {
-//         mot(0, current_velocity);
-//       }
-//     }
-//   }
-
-  
-//   else if (S6 == BLACK) {
-//     delay(t);
-//     readsensor();
-//     if (S6 == BLACK) {
-//       delay(t);
-//       readsensor();
-//       if (S6 == BLACK) {
-//         mot(current_velocity, 0);
-//       }
-//     }
-//   }
-
-//   /*
-//   else if(S1 == WHITE && S2 == WHITE && S3 == WHITE && S5 == WHITE && S5 == WHITE && S6 == WHITE && S7 == WHITE)
-//   {
-// 	  delay(10*t);
-// 	  readsensor();
-// 	  if (S1 == WHITE && S2 == WHITE && S3 == WHITE && S5 == WHITE &&S5 == WHITE && S6 == WHITE && S7 == WHITE) {
-// 		  delay(10*t);
-// 		  readsensor();
-// 		  if (S1 == WHITE && S2 == WHITE && S3 == WHITE && S5 == WHITE && S5 == WHITE && S6 == WHITE && S7 == WHITE) {
-// 			  mot(0, 0);
-// 		  }
-// 	  }
-//   }
-//   */
-// }
 
 const unsigned char gray_id_1 = 1;
 const unsigned char gray_id_2 = 1 << 1;
@@ -312,38 +82,37 @@ int checkState(unsigned char state)
     static int pre_state;
     switch (state)
     {
-        case (28)://345
-        case (62)://23456
-        case (30)://2345
-        case (60)://3456
+        case G0011100://345
+        case G0111110://23456
+        case G0111100://2345
+        case G0011110://3456
             pre_state =  _FAST_STRAIGHT_;
             break;
-        case (12)://34
+        case G0011000://34
             pre_state =  _SLOW_LEFT_;
             break;
-        case (24)://45
+        case G0001100://45
             pre_state =  _SLOW_RIGHT_;
             break;
-        case (14)://234
+        case G0111000://234
             pre_state =  _FAST_LEFT_;
             break;
-        case (56)://456
+        case G0001110://456
             pre_state =  _FAST_RIGHT_;
             break;
-        case (3)://12
-            pre_state =  _FAST_LEFT_
-            ;
-            break;
-        case (96)://67
-            pre_state =  _FAST_RIGHT_;
-            break;
-        case (6)://23
+        case G1100000://12
             pre_state =  _FAST_LEFT_;
             break;
-        case (48)://56
+        case G0000011://67
+            pre_state =  _FAST_RIGHT_;
+            break;
+        case G0110000://23
+            pre_state =  _FAST_LEFT_;
+            break;
+        case G0000110://56
              pre_state =  _FAST_RIGHT_;
              break;
-        case (127)://1234567
+        case G1111111://1234567
             pre_state =  _FAST_STRAIGHT_;
             break;
         default:
@@ -352,7 +121,7 @@ int checkState(unsigned char state)
     return pre_state;
 }
 
-void straight_test()
+void tracking()
 {
   // first readsensor
   readsensor();
@@ -368,92 +137,132 @@ void straight_test()
      motor.changeState(state1);
 }
 
-void barrier()
+//超声波测距
+void measure()
 {
-	digitalWrite(leftTrigPin, LOW);
-	delay(2);
-	digitalWrite(leftTrigPin, HIGH);
-	delay(10);
-	digitalWrite(leftTrigPin, LOW);
-	float distanceL = pulseIn(leftEchoPin, HIGH, 6000)*0.017;
-	digitalWrite(rightTrigPin, LOW);
-	delay(2);
-	digitalWrite(rightTrigPin, HIGH);
-	delay(10);
-	digitalWrite(rightTrigPin, LOW);
-	float distanceR = pulseIn(rightEchoPin, HIGH, 6000)*0.017;
-  distance = distanceL < distanceR ? distanceR : distanceL;
+  digitalWrite(leftTrigPin, LOW);
+  delay(2);
+  digitalWrite(leftTrigPin, HIGH);
+  delay(10);
+  digitalWrite(leftTrigPin, LOW);
+  float left_distance = pulseIn(leftEchoPin, HIGH, 6000) * 0.017;
+  left_distance = left_distance > 0 ? left_distance : 100;
+  Serial.print("left diatance:");
+  Serial.println(left_distance);
+  digitalWrite(rightTrigPin, LOW);
+  delay(2);
+  digitalWrite(rightTrigPin, HIGH);
+  delay(10);
+  digitalWrite(rightTrigPin, LOW);
+  float right_distance = pulseIn(rightEchoPin, HIGH, 6000) * 0.017;
+  right_distance = right_distance > 0 ? right_distance : 100;
+  Serial.print("right diatance:");
+  Serial.println(right_distance);
+  distance = left_distance < right_distance ? left_distance : right_distance;
+  Serial.print("diatance:");
   Serial.println(distance);
-	//if (near_Barrier == 1 && distance < 20 && distance>5)
-  if (distance <= 20 && distance >= 5)
-		avoid_Barrier();
+  if (near_Barrier == 1 && distance < 20 && distance>15){
+      delay(t);
+      if (near_Barrier == 1 && distance < 20 && distance>15){
+        delay(t);
+        if (near_Barrier == 1 && distance < 20 && distance>15){
+          avoid_Barrier();
+        }
+      }
+  }
 }
 
+//避障
 void avoid_Barrier()
 {
 	motor.changeState(_LEFT_ROTATION_);
-	delay(200);
+	delay(600);
 	motor.changeState(_FAST_STRAIGHT_);
-	delay(1000);
+	delay(500);
 	motor.changeState(_RIGHT_ROTATION_);
-	delay(400);
-	motor.changeState(_FAST_STRAIGHT_);
+	delay(600);
+  motor.changeState(_FAST_STRAIGHT_);
+  delay(850);
+  motor.changeState(_RIGHT_ROTATION_);
+  delay(600);
+  motor.changeState(_FAST_STRAIGHT_);
+  delay(500);
+  motor.changeState(_LEFT_ROTATION_);
+  delay(600);
+  line = 6;   
+  next_flag = 0;   //避障完成后重置line,next_flag
 	near_Barrier = 0;
 }
 
-void count()
+void change_flag()
 {
-	line--;
-	Serial.print("line:");
-	Serial.println(line);
-	if (line == 0) {
-		Serial.println("slow");
-		current_velocity = 100;
-	}
+  flag = 1;
 }
 
+void change_line()
+{
+  static unsigned long time=millis();
+  unsigned long current_time = millis();
+  unsigned long dec = current_time - time;
+  if (dec >= 666 && stop_five_sec == 0)
+  {
+    line--;
+    line = line > 0 ? line : 0;
+    Serial.println(line);
+    time = current_time;
+  }
+}
+
+//当line为0时触发停止，且是通过中间的进行触发，此处主要
 void stop()
 {
-	if (line == 0) {
-		Serial.println("stop");
-		stop_five_sec = 1;
-	}
+  if (line == 0) {
+    if (next_flag == 0)  //下一步停止
+    {
+      Serial.println("stop");
+      stop_five_sec = 1;
+      line = next_line;
+      next_flag = 1;
+    }
+    else if (next_flag == 1)  //下一步避障
+    {
+      near_Barrier = 1;
+    }
+  }
 }
+
 
 void setup() {
 	Serial.begin(9600);
-	line = 2;
-	basic_velocity = 255;
-	current_velocity = basic_velocity;
 	pinMode(leftTrigPin, OUTPUT);
 	pinMode(rightTrigPin, OUTPUT);
 	pinMode(leftEchoPin, INPUT);
 	pinMode(rightEchoPin, INPUT);
 	pinMode(grey_a, INPUT);
 	pinMode(grey_b, INPUT);
-	pinMode(grey_c, INPUT);
-//	attachInterrupt(4, count, RISING);
-//	attachInterrupt(5, stop, FALLING);
+  attachInterrupt(4, change_flag, RISING);
+  attachInterrupt(5, stop, FALLING);
 }
 
 
 void loop() {
-  //motor.changeState(_FAST_STRAIGHT_);
-	straight_test();
-//	if (stop_five_sec == 1)
-//	{
-//		mot_reverse(200, 200);
-//		delay(120);
-//		mot(0, 0);
-//		delay(5000);
-//		current_velocity = basic_velocity;		//停止后静止5秒重新启动
-//		straight_test();
-//		line = 2;
-//		stop_five_sec = 0;
-//	}
-//	if (pulseIn(19, HIGH) / 1000 > 300)
-//	{
-//		count();
-//	}
-  barrier();
+  tracking();
+  if (stop_five_sec == 1)
+  {
+    motor.changeState(_NORMAL_STRAIGHT_);
+    delay(120);
+    motor.changeState(_STOP_);
+    delay(5000);
+    stop_five_sec = 0;
+  }
+  if (flag == 1)
+  {
+    change_line();
+  }
+  if(near_Barrier)
+  {
+    measure();
+  }
+  measure();
+  delay(3000);
 }

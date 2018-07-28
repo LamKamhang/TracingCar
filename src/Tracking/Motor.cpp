@@ -39,6 +39,7 @@ void Motor::changeState(MotorState state)
     {
     case _FAST_STRAIGHT_:   fast_straight();        break;
     case _NORMAL_STRAIGHT_: normal_straight();      break;
+    case _NORMAL_BACKWARD_: normal_backward();      break;
     case _STOP_:            stop();                 break;
     case _FAST_LEFT_:       fast_left();            break;
     case _NORMAL_LEFT_:     normal_left();          break;
@@ -60,6 +61,11 @@ void Motor::fast_straight()
 void Motor::normal_straight()
 {
     mot(200, 200);
+}
+
+void Motor::normal_backward()
+{
+    mot(-200, -200);
 }
 
 void Motor::fast_left()
