@@ -269,7 +269,8 @@ void setup() {
 
 
 void loop() {
-  tracking();
+  tracking_pid();
+  // tracking();
   if (stop_five_sec == 1)
   {
     motor.changeState(_NORMAL_STRAIGHT_);
@@ -287,5 +288,5 @@ void loop() {
     measure();
   }
   measure();
-  delay(3000);
+//  delay(3000);
 }
