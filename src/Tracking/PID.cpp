@@ -9,7 +9,7 @@ PID::PID()
     ,   preInput(0)
 {}
 
-PID::PID(int Kp, int Ki, int Kd)
+PID::PID(double Kp, double Ki, double Kd)
     :   Kp(Kp)
     ,   Ki(Ki)
     ,   Kd(Kd)

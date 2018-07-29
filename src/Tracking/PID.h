@@ -16,7 +16,7 @@ class PID
 {
 public:
     PID();
-    PID(int Kp, int Ki, int Kd);
+    PID(double Kp, double Ki, double Kd);
     int get_output(int state);
 
 private:
