@@ -1,0 +1,32 @@
+1、if(Position != -1)   
+
+原因：烧录完程序后，程序立马执行扫码功能，期间扫码模块如果没有对准条形码，就会找不到有效字符串
+改进：找不到有效字符串时，调整位置，每隔0.3秒继续进行扫码直到扫码有效为止
+
+
+
+2、if(Position != -1)   //字符'Z'找到
+   {
+      SciString = SciString.substring(Position,SciString.length());  //截取有效字符串 e.g    sdaaf,ZJGXDS01 --------->  ZJGXDS01
+                                                                     //                        返回的字符串        截取到有效的字符串
+                                                                     
+      get_char = SciString.charAt(7);  // 返回第7位字符  e.g   ZJGXDS01  ---->    1
+
+      SciString  = ""; //接受字符串清空 
+
+      return get_char; //返回有效字符串的最后一位字符
+   }
+   else   //字符'Z'未能找到   
+   {
+      flag_SetSeiDecMod = 1;  //初始化标志位  方便第二次扫码
+      flag_StaDec   = 0;
+      
+      SciString  = ""; //接受字符串清空 
+      
+      get_char = ' ';  //返回空字符
+      return get_char;
+    }
+
+
+每次用完接受字符串 SciString  后，必须清空处理SciString  = ""; //接受字符串清空 ，避免接收字符串累加
+
