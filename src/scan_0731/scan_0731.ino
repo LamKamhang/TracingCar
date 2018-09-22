@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
+
 SoftwareSerial mySerial(13,12); // TX,     RX  PCINT
 
 String SciString = "";         // 主控板接收扫码模块发送回来的字符串
@@ -24,8 +25,10 @@ void setup()
 
 char scan()
 {
+  //Serial.println("scaning...");
    char get_char = ' ';
    
+   //Serial.println(flag_SetSeiDecMod);
    if(flag_SetSeiDecMod == true)       //模块初始化功能
    {
       for(i = 0;i < sizeof(SetSeiDecMod);i++)
@@ -37,6 +40,7 @@ char scan()
       flag_StaDec = 1;
    }
 
+  //Serial.println(flag_StaDec);
    if(flag_StaDec == 1)     //模块扫码功能
    {
       for(i = 0;i < sizeof(StaDec);i++)
@@ -55,6 +59,7 @@ char scan()
    
    Position = SciString.indexOf('Z');  //找到字符Z的位置  
 
+  //Serial.println(Position);
    if(Position != -1)   //字符'Z'找到
    {
       SciString = SciString.substring(Position,SciString.length());  //截取有效字符串 e.g    sdaaf,ZJGXDS01 --------->  ZJGXDS01
@@ -84,9 +89,11 @@ void loop()
        if(scanflag != ' ') //有效字符串末尾字符不是空字符  则打印该字符
        {
           Serial.println(scanflag);
+          scanflag = ' ';
        }
        else   //每隔0.3秒 扫码一次 直到找到有效字符串
       {
+        Serial.println("---");
          scanflag = scan();
          delay(300);
        }
