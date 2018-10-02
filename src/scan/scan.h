@@ -18,6 +18,7 @@ public:
     char run();
 
 private:
-    void _init();
     SoftwareSerial mySerial;
+    boolean flag_SetSeiDecMod;
+    boolean flag_StaDec;
 };
