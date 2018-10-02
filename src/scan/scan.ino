@@ -8,11 +8,24 @@ void setup()
   scanM.init();
 }
 
+char scan()
+{
+  char res = 0;
+  char flag;
+  int time = millis();
+  while (millis() - time < 1000)
+  {
+    flag = scanM.run();
+    if (flag >= '0' && flag <= '9')
+    {
+      res = check_target(flag);
+      break;
+    }
+  }
+  return res;
+}
+
 void loop()
 {
-  char scanflag = scanM.run();
-  if (scanflag == ' ')
-    Serial.println("---");
-  else
-    Serial.println(scanflag);
+  Serial.println(scan()+48);
 }
