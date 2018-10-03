@@ -10,7 +10,7 @@
 const unsigned char SetSeiDecMod[] = {0x07,0xC6,0x04,0x00,0xFF,0x8A,0x08,0xFD,0x9E};  //扫码模块初始化协议
 const unsigned char StaDec[] = {0x04,0xE4,0x04,0x00,0xFF,0x14};   //扫码模块扫码协议
 
-const char target[] = {'1', '3', '5','6'};
+const char target[] = {'1','2', '3','4', '5','6','7','8', '9', '0'};
 const char num_target = sizeof(target) / sizeof(target[0]);
 
 char check_target(char scan_char);

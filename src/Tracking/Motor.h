@@ -1,14 +1,13 @@
 #pragma once
 #include <Arduino.h>
 /*
-    left_front_wheel1 = 4;
-    left_front_wheel2 = 5;
-    right_front_wheel1 = 10;
-    right_front_wheel2 = 11;
-    left_behind_wheel1 = 8;
-    left_behind_wheel2 = 9;
-    right_behind_wheel1 = 7;
-    right_behind_wheel2 = 6;
+    //定义车轮驱动接口
+    left_wheel1 = 9;
+    left_wheel2 = 10;
+    left_wheelPWM = 8;
+    right_wheel1 = 5;
+    right_wheel2 = 6;
+    right_wheelPWM = 4;
 */
 enum MotorState {
 	_FAST_STRAIGHT_,
@@ -29,14 +28,12 @@ class Motor
 {
 public:
     Motor(
-        int left_front_wheel1,
-        int left_front_wheel2,
-        int right_front_wheel1,
-        int right_front_wheel2,
-        int left_behind_wheel1,
-        int left_behind_wheel2,
-        int right_behind_wheel1,
-        int right_behind_wheel2
+        int left_wheelPWM,
+		int left_wheel1,
+        int left_wheel2,
+		int right_wheelPWM,
+        int right_wheel1,
+        int right_wheel2
     );
     void init();
     void changeState(MotorState state);
@@ -57,13 +54,11 @@ private:
 	void rotationR();
 
 private:
-    int left_front_wheel1;
-    int left_front_wheel2;
-    int right_front_wheel1;
-    int right_front_wheel2;
-    int left_behind_wheel1;
-    int left_behind_wheel2;
-    int right_behind_wheel1;
-    int right_behind_wheel2;
+    int left_wheel1;
+    int left_wheel2;
+	int left_wheelPWM;
+    int right_wheel1;
+    int right_wheel2;
+	int right_wheelPWM;
 };
 

@@ -2,35 +2,29 @@
 
 
 Motor::Motor(
-    int left_front_wheel1,
-    int left_front_wheel2,
-    int right_front_wheel1,
-    int right_front_wheel2,
-    int left_behind_wheel1,
-    int left_behind_wheel2,
-    int right_behind_wheel1,
-    int right_behind_wheel2
+	int left_wheelPWM,
+    int left_wheel1,
+    int left_wheel2,
+	int right_wheelPWM,
+    int right_wheel1,
+    int right_wheel2
     )
-    : left_front_wheel1(left_front_wheel1)
-    , left_front_wheel2(left_front_wheel2)
-    , right_front_wheel1(right_front_wheel1)
-    , right_front_wheel2(right_front_wheel2)
-    , left_behind_wheel1(left_behind_wheel1)
-    , left_behind_wheel2(left_behind_wheel2)
-    , right_behind_wheel1(right_behind_wheel1)
-    , right_behind_wheel2(right_behind_wheel2)
+    :left_wheelPWM(left_wheelPWM)
+	,left_wheel1(left_wheel1)
+    , left_wheel2(left_wheel2)
+	, right_wheelPWM(right_wheelPWM)
+    , right_wheel1(right_wheel1)
+    , right_wheel2(right_wheel2)
 {}
 
 void Motor::init()
 {
-    pinMode(left_front_wheel1, OUTPUT);
-    pinMode(left_front_wheel2, OUTPUT);
-    pinMode(right_front_wheel1, OUTPUT);
-    pinMode(right_front_wheel2, OUTPUT);
-    pinMode(left_behind_wheel1, OUTPUT);
-    pinMode(left_behind_wheel2, OUTPUT);
-    pinMode(right_behind_wheel1, OUTPUT);
-    pinMode(right_behind_wheel2, OUTPUT);
+    pinMode(left_wheelPWM, OUTPUT);
+    pinMode(left_wheel1, OUTPUT);
+    pinMode(left_wheel2, OUTPUT);
+    pinMode(right_wheelPWM, OUTPUT);
+    pinMode(right_wheel1, OUTPUT);
+    pinMode(right_wheel2, OUTPUT);
 }
 
 void Motor::changeState(MotorState state)
@@ -118,47 +112,39 @@ void Motor::mot(int left_velocity,int right_velocity) {
 
 	if (left_velocity >= 0 && right_velocity >= 0)
 	{
-        digitalWrite(left_front_wheel2, LOW);
-        analogWrite(left_front_wheel1, left_velocity);  //前左轮正转
-        digitalWrite(left_behind_wheel1, LOW);
-        analogWrite(left_behind_wheel2, left_velocity); //后左轮正转
-        digitalWrite(right_front_wheel1, LOW);
-        analogWrite(right_front_wheel2, right_velocity);//前右轮正转
-        digitalWrite(right_behind_wheel2, LOW);
-        analogWrite(right_behind_wheel1, right_velocity);//后右轮正转
+        digitalWrite(left_wheel1, HIGH);
+		digitalWrite(left_wheel2, LOW);
+        analogWrite(left_wheelPWM, left_velocity);  //左轮正转
+		digitalWrite(right_wheel1, HIGH);
+		digitalWrite(right_wheel2, LOW);
+        analogWrite(right_wheelPWM, right_velocity);//右轮正转
 	}
 	else if (left_velocity >= 0 && right_velocity <= 0)
 	{
-        digitalWrite(left_front_wheel2, LOW);
-        analogWrite(left_front_wheel1, left_velocity);  //前左轮正转
-        digitalWrite(left_behind_wheel1, LOW);
-        analogWrite(left_behind_wheel2, left_velocity); //后左轮正转
-        digitalWrite(right_front_wheel2, LOW);
-        analogWrite(right_front_wheel1, -right_velocity);//前右轮反转
-        digitalWrite(right_behind_wheel1, LOW);
-        analogWrite(right_behind_wheel2, -right_velocity);//后右轮反转
+        digitalWrite(left_wheel1, HIGH);
+		digitalWrite(left_wheel2, LOW);
+		analogWrite(left_wheelPWM, left_velocity);  //左轮正转
+		digitalWrite(right_wheel1, LOW);
+		digitalWrite(right_wheel2, HIGH);
+		analogWrite(right_wheelPWM, -right_velocity);//右轮反转
 	}
 	else if (left_velocity <= 0 && right_velocity >= 0)
 	{
-        digitalWrite(left_front_wheel1, LOW);
-        analogWrite(left_front_wheel2, -left_velocity);  //前左轮反转
-        digitalWrite(left_behind_wheel2, LOW);
-        analogWrite(left_behind_wheel1, -left_velocity); //后左轮反转
-        digitalWrite(right_front_wheel1, LOW);
-        analogWrite(right_front_wheel2, right_velocity);//前右轮正转
-        digitalWrite(right_behind_wheel2, LOW);
-        analogWrite(right_behind_wheel1, right_velocity);//后右轮正转
+        digitalWrite(left_wheel1, LOW);
+		digitalWrite(left_wheel2, HIGH);
+		analogWrite(left_wheelPWM, left_velocity);  //左轮反转
+		digitalWrite(right_wheel1, HIGH);
+		digitalWrite(right_wheel2, LOW);
+		analogWrite(right_wheelPWM, right_velocity);//右轮正转
 	}
 	else
 	{
-        digitalWrite(left_front_wheel1, LOW);
-        analogWrite(left_front_wheel2, -left_velocity);  //前左轮反转
-        digitalWrite(left_behind_wheel2, LOW);
-        analogWrite(left_behind_wheel1, -left_velocity); //后左轮反转
-        digitalWrite(right_front_wheel2, LOW);
-        analogWrite(right_front_wheel1, -right_velocity);//前右轮反转
-        digitalWrite(right_behind_wheel1, LOW);
-        analogWrite(right_behind_wheel2, -right_velocity);//后右轮反转
+        digitalWrite(left_wheel1, LOW);
+		digitalWrite(left_wheel2, HIGH);
+		analogWrite(left_wheelPWM, left_velocity);  //左轮正转
+		digitalWrite(right_wheel1, LOW);
+		digitalWrite(right_wheel2, HIGH);
+		analogWrite(right_wheelPWM, right_velocity);//右轮正转
 	}
 }
 

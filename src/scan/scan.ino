@@ -12,7 +12,7 @@ char scan()
 {
   char res = 0;
   char flag;
-  int time = millis();
+  unsigned long time = millis();
   while (millis() - time < 1000)
   {
     flag = scanM.run();
@@ -27,5 +27,5 @@ char scan()
 
 void loop()
 {
-  Serial.println(scan()+48);
+  Serial.println(scan()+0);
 }
