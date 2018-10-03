@@ -1,5 +1,9 @@
 #pragma once
 
+#define _LOW_START_FLAG_
+//#define _STOP_1_FLAG_
+//#define _STOP_1_READY_TIME_ 500
+
 //定义七路灰度传感器接口
 #define sensor1 30   
 #define sensor2 32
@@ -28,5 +32,5 @@
 #define rightEchoPin 45
 
 //定义三路灰度传感器
-#define grey_a 18		//前方传感器
-#define grey_b 19		//后方传感器
+#define grey_a 26		//前方传感器
+#define grey_b 28		//后方传感器

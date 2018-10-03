@@ -13,6 +13,10 @@ const unsigned char gray_id_5 = 1 << 4;
 const unsigned char gray_id_6 = 1 << 5;
 const unsigned char gray_id_7 = 1 << 6;
 
+int slide_time = 100;				//定义滑动时间
+int wave_times = 2;
+int wave_velocity=70;
+
 //驱动
 Motor motor(
 	left_wheelPWM,
@@ -23,15 +27,22 @@ Motor motor(
 	right_wheel2
 );
 
-//PID循迹
-PID pid(40, 0.02, 15);
+// 总流程
+void run();
 
-//读取七路灰度传感器
+//PID循迹
+PID pid(35, 0, 15);
+
+//读取灰度传感器
 void readsensor(void);
+void read2sensor(void);
 void read7sensor(void);
+void check2sensor(void);
 //循迹
 void tracking_pid(void);
 
+//黑线判断函数
+int judge_line(void);
 //超声波测距
 float measure(void);
 
@@ -46,40 +57,38 @@ void setup() {
 	pinMode(grey_a, INPUT);
 	pinMode(grey_b, INPUT);
 	motor.init();
-readsensor();
-//  unsigned long _time = millis();
-//  motor.mot(200,200);
-//  while (millis() - _time < 500);
+
+#ifdef _LOW_START_FLAG_
+{
+	unsigned long _time = millis();
+	motor.mot(200,200);
+	while (millis() - _time < 500);
+}
+#endif
 }
 
 void loop()
 {
-  
-  Ca = Sa;
-  Cb = Sb;
-  readsensor();
-  if (Ca != Sa)
-    Serial.println("A changed");
-  if (Cb != Sb)
-    Serial.println("B changed");
-//    tracking_pid();
-    //delay(500);
-    //motor.mot(-200,200);
+	run();
 }
 
 
 
 void readsensor(void)
 {
-	S1 = digitalRead(sensor1);
-	S2 = digitalRead(sensor2);
-	S3 = digitalRead(sensor3);
-	S4 = digitalRead(sensor4);
-	S5 = digitalRead(sensor5);
-	S6 = digitalRead(sensor6);
-	S7 = digitalRead(sensor7);
+	read2sensor();
+	read7sensor();
+}
+
+void read2sensor(void)
+{
 	Sa = digitalRead(grey_a);
 	Sb = digitalRead(grey_b);
+}
+void check2sensor(void)
+{
+	Ca = digitalRead(grey_a);
+	Cb = digitalRead(grey_b);
 }
 
 void read7sensor(void)
@@ -100,15 +109,85 @@ void tracking_pid()
 	read7sensor();
 	int output = pid.get_output(S1*gray_id_1 | S2 * gray_id_2 | S3 * gray_id_3 | S4 * gray_id_4 | S5 * gray_id_5 | S6 * gray_id_6 | S7 * gray_id_7);
 	
-	 //输出状态
-	 Serial.print("state: ");
-	 //Serial.println(S1*gray_id_1 | S2 * gray_id_2 | S3 * gray_id_3 | S4 * gray_id_4 | S5 * gray_id_5 | S6 * gray_id_6 | S7 * gray_id_7);
-	 Serial.print(S1);Serial.print(S2);Serial.print(S3);Serial.print(S4);Serial.print(S5);Serial.print(S6);Serial.print(S7);
-	 Serial.print("\noutput: ");
-	 Serial.println(output);
+	//  //输出状态
+	//  Serial.print("state: ");
+	//  //Serial.println(S1*gray_id_1 | S2 * gray_id_2 | S3 * gray_id_3 | S4 * gray_id_4 | S5 * gray_id_5 | S6 * gray_id_6 | S7 * gray_id_7);
+	//  Serial.print(S1);Serial.print(S2);Serial.print(S3);Serial.print(S4);Serial.print(S5);Serial.print(S6);Serial.print(S7);
+	//  Serial.print("\noutput: ");
+	//  Serial.println(output);
 
 	//控制电机转速
 	motor.mot((255 - output), (255 + output));
+}
+
+
+//黑线判断函数
+int judge_line()
+{
+	read7sensor();
+	if ((S1 == WHITE || S2 == WHITE) && (S3 == BLACK || S4 == BLACK || S5 == BLACK) && S6 == BLACK && S7==BLACK )
+	{
+		read7sensor();
+		if ((S1 == WHITE || S2 == WHITE) && (S3 == BLACK || S4 == BLACK || S5 == BLACK)&& S6 == BLACK && S7 == BLACK)
+		{
+			read7sensor();
+			if ((S1 == WHITE || S2 == WHITE) && (S3 == BLACK || S4 == BLACK || S5 == BLACK) && S6 == BLACK && S7 == BLACK)
+			{
+				read7sensor();
+				if ((S1 == WHITE || S2 == WHITE) && (S3 == BLACK || S4 == BLACK || S5 == BLACK) && S6 == BLACK && S7 == BLACK) {
+					Serial.println("stop");
+					return 0;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+//停止函数
+void stop()
+{
+	int speed = 50;
+
+	do{
+		read2sensor();
+		if (Sb == BLACK && speed > 0)
+		{
+			speed = -speed;
+		}
+		motor.mot(speed,speed);
+	} while(Sa != BLACK);
+
+	motor.mot(0,0);
+}
+
+//调整函数
+void adjust()
+{
+	int times = 0;
+	int velocity = wave_velocity;
+	int flag;
+	read2sensor();
+	while (velocity > 30)
+	{
+		read2sensor();
+		if (Sa == BLACK && Sb == WHITE)
+			flag = 1;
+		else if (Sa == WHITE && Sb == BLACK)
+			flag = -1;
+		else if (Sa == BLACK && Sb == BLACK)
+			flag = 0;
+		motor.mot(velocity*flag, velocity*flag);
+		delay(10);
+		times++;
+		if (times == wave_times)
+		{
+			velocity--;
+			times = 0;
+		}
+	}
+	motor.mot(0, 0);
+	delay(3000);
 }
 
 //超声波测距
@@ -137,4 +216,31 @@ float measure()
 	Serial.print("diatance:");
 	Serial.println(distance);
 	return distance;
+}
+
+void run(void)
+{
+#ifdef _STOP_1_FLAG_
+	unsigned long _stop_1_time = millis();
+	while (millis() - _stop_1_time < _STOP_1_READY_TIME_)
+		tracking_pid();
+	
+	while(1)
+	{
+		tracking_pid();
+	}
+	// while(judge_line())
+	// {
+	// 	tracking_pid();
+	// }
+	// while(1)
+	// {
+	// 	motor.mot(0,0);
+	// }
+	//stop();
+	//adjust();
+	//delay(3000);
+#else
+	tracking_pid();
+#endif
 }
