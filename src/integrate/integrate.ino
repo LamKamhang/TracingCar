@@ -32,7 +32,8 @@ Motor motor(
 void run();
 
 //PID循迹
-PID pid(35, 0, 15);
+PID pid(35, 0, 10);
+void low_start();
 
 //读取灰度传感器
 void readsensor(void);
@@ -60,11 +61,7 @@ void setup() {
 	motor.init();
 
 #ifdef _LOW_START_FLAG_
-{
-	unsigned long _time = millis();
-	motor.mot(200,200);
-	while (millis() - _time < 500);
-}
+	low_start();
 #endif
 }
 
@@ -117,6 +114,13 @@ void read7sensor(void)
 	S7 = digitalRead(sensor7);
 }
 
+void low_start()
+{
+	unsigned long _time = millis();
+	motor.mot(200,200);
+	while (millis() - _time < 500);
+}
+
 //循迹
 void tracking_pid()
 {
@@ -150,8 +154,8 @@ int judge_line()
 			delay(3);
 			read3sensor();
 			if ((Sa + Sb) && Sc == WHITE){
-				delay(3)
-				read3sensorf();
+				delay(3);
+				read3sensor();
 				if ((Sa + Sb) && Sc == WHITE)
 					flag = 0;
 			}
@@ -168,23 +172,27 @@ void adjust()
 	int velocity = wave_velocity;
 	int flag;
 	read3sensor();
-	while (velocity > 30)
+	unsigned long _adjust_time = millis();
+	while (millis() - _adjust_time < _ADJUST_TIME)
 	{
-		read3sensor();
-		if (Sa == BLACK && Sb == WHITE)
+		if (Sa == BLACK && Sb == BLACK)
+			flag = 0;
+		else if (Sa == BLACK && Sb == WHITE)
 			flag = 1;
-		else if (Sa == WHITE && Sb == BLACK)
+		else
 			flag = -1;
-		else if (Sa == BLACK && Sb == BLACK)
-			break;
 		motor.mot(velocity*flag, velocity*flag);
-		delay(50);
+		delay(10);
 		times++;
 		if (times == wave_times)
 		{
-			velocity-=10;
-			times = 0;
+			if (velocity > 30)
+			{
+				velocity-=10;
+				times = 0;
+			}
 		}
+		read3sensor();
 	}
 	motor.mot(0, 0);
 }
@@ -229,8 +237,27 @@ void run(void)
 		tracking_pid();
 	}
 	adjust();
-	delay(3000);
-#else
-	tracking_pid();
+	delay(3000);	
 #endif
+
+	unsigned long _some_time = millis();
+	while (millis() - _some_time < _SOME_READY_TIME)
+		tracking_pid();
+
+#ifdef _STOP_2_FLAG_
+{
+	unsigned long _stop_2_time = millis();
+	while (millis() - _stop_2_time < _STOP_2_READY_TIME_)
+		tracking_pid();
+	
+	while(judge_line())
+	{
+		tracking_pid();
+	}
+	adjust();
+	delay(3000);	
+}
+#endif 
+  while(1)
+    tracking_pid();
 }

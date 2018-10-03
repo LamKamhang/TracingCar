@@ -4,6 +4,12 @@
 #define _STOP_1_FLAG_
 #define _STOP_1_READY_TIME_ 1000
 
+#define _STOP_2_FLAG_
+#define _STOP_2_READY_TIME_ 1000
+
+#define _ADJUST_TIME 500
+#define _SOME_READY_TIME 5000
+
 //定义七路灰度传感器接口
 #define sensor1 30
 #define sensor2 32
