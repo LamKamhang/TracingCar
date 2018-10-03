@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
+// gnd, vcc, SOFT_TX_PIN, SOFT_RX_PIN
 #define _SOFT_RX_PIN_   13
 #define _SOFT_TX_PIN_   12
 

@@ -17,6 +17,10 @@ const unsigned char gray_id_7 = 1 << 6;
 int slide_time = 100;				//定义滑动时间
 int wave_times = 2;
 int wave_velocity=70;
+const int delay_time = 3;		//定义延时时间
+
+//PID循迹
+PID pid(40, 0.001, 20);
 
 //驱动
 Motor motor(
@@ -31,9 +35,6 @@ Motor motor(
 // 总流程
 void run();
 
-//PID循迹
-PID pid(35, 0, 10);
-void low_start();
 
 //读取灰度传感器
 void readsensor(void);
@@ -41,12 +42,20 @@ void read3sensor(void);
 void read7sensor(void);
 void check3sensor(void);
 //循迹
+void low_start();
 void tracking_pid(void);
 
 //黑线判断函数
 int judge_line(void);
+void adjust(void);
+void catch_adjust();
+void place_adjust();
 //超声波测距
 float measure(void);
+//避障判断函数
+void avoid();
+//避障函数
+void avoid_Barrier();
 
 
 
@@ -65,8 +74,7 @@ void setup() {
 #endif
 }
 
-void loop()
-{
+void loop(){
 //   read7sensor();
 //   Serial.print(S1);
 // 	Serial.print(S2);
@@ -77,9 +85,7 @@ void loop()
 //  Serial.print(S7);
 //  Serial.println();
 	run();
-	// float dist = measure();
-	// Serial.println(dist);
-	// delay(1000);
+//	avoid_Barrier();
 }
 
 
@@ -169,14 +175,20 @@ int judge_line()
 void adjust()
 {
 	int times = 0;
+	int times2 = 0;
 	int velocity = wave_velocity;
 	int flag;
-	read3sensor();
 	unsigned long _adjust_time = millis();
 	while (millis() - _adjust_time < _ADJUST_TIME)
 	{
+		read3sensor();
 		if (Sa == BLACK && Sb == BLACK)
+		{
 			flag = 0;
+			times2++;
+			if (times2 > 4)
+				break;
+		}
 		else if (Sa == BLACK && Sb == WHITE)
 			flag = 1;
 		else
@@ -192,9 +204,48 @@ void adjust()
 				times = 0;
 			}
 		}
-		read3sensor();
 	}
 	motor.mot(0, 0);
+}
+
+//夹取后退
+void catch_adjust()
+{
+	motor.mot(-_CATCH_SPEED, -_CATCH_SPEED);
+	delay(_CATCH_BACK_TIME);
+	motor.mot(10, 10);
+	delay(10);
+	motor.mot(0, 0);
+	delay(2000);
+	for (int i = 0; i < 4; ++i)
+	{
+		motor.mot(_CATCH_SPEED, _CATCH_SPEED);
+		delay(_CATCH_FORWARD_TIME);
+		motor.mot(-10, -10);
+		delay(10);
+		motor.mot(0, 0);
+		delay(2000);
+	}
+}
+
+// 放置后退
+void place_adjust()
+{
+	motor.mot(-_CATCH_SPEED, -_CATCH_SPEED);
+	delay(_PLACE_BACK_TIME);
+	motor.mot(10, 10);
+	delay(10);
+	motor.mot(0, 0);
+	delay(2000);
+	for (int i = 0; i < 4; ++i)
+	{
+		motor.mot(_CATCH_SPEED, _CATCH_SPEED);
+		delay(_PLACE_FORWARD_TIME);
+		motor.mot(-10, -10);
+		delay(10);
+		motor.mot(0, 0);
+		delay(2000);
+	}
 }
 
 //超声波测距
@@ -225,6 +276,63 @@ float measure()
 	return distance;
 }
 
+//避障判断函数
+void avoid()
+{
+	float distance = measure();
+	while(1)
+	{
+		tracking_pid();
+		distance = measure();
+		if (distance < 25 && distance>5) {
+			delay(delay_time);
+			distance = measure();
+			if (distance < 25 && distance>5) {
+				delay(delay_time);
+				distance = measure();
+				if (distance < 25 && distance>5) 
+					avoid_Barrier();
+					break;
+			}
+		}
+		else if (distance < 5)
+		{
+			motor.mot(-200, -200);
+			delay(500);
+		}
+	}
+}
+
+//避障函数
+void avoid_Barrier()
+{
+	motor.mot(-100,200);
+	delay(600);
+	motor.mot(200,200);
+	delay(1000);
+	motor.mot(200,-100);
+	delay(1200);
+  	motor.mot(200,200);
+	// while (1)
+	// {
+	// 	readsensor();
+	// 	if (S1 == WHITE && S3 == WHITE && S5 == WHITE && S7 == WHITE && Sa == BLACK)
+	// 	{
+	// 		readsensor();
+	// 		if (S1 == WHITE && S3 == WHITE && S5 == WHITE && S7 == WHITE && Sa == BLACK)
+	// 		{
+	// 			readsensor();
+	// 			if (S1 == WHITE && S3 == WHITE && S5 == WHITE && S7 == WHITE && Sa == BLACK)
+	// 			{
+	// 				motor.changeState(_LEFT_ROTATION_);
+	// 				delay(500);
+	// 				break;
+	// 			}
+	// 		}
+	// 	}
+	// }
+}
+
 void run(void)
 {
 #ifdef _STOP_1_FLAG_
@@ -238,26 +346,43 @@ void run(void)
 	}
 	adjust();
 	delay(3000);	
+	catch_adjust();
 #endif
-
+	low_start();
 	unsigned long _some_time = millis();
-	while (millis() - _some_time < _SOME_READY_TIME)
+	while (millis() - _some_time < _BARRIER_TIME)
 		tracking_pid();
+
+	avoid();
 
 #ifdef _STOP_2_FLAG_
 {
 	unsigned long _stop_2_time = millis();
 	while (millis() - _stop_2_time < _STOP_2_READY_TIME_)
 		tracking_pid();
-	
+
 	while(judge_line())
 	{
 		tracking_pid();
 	}
 	adjust();
 	delay(3000);	
+	place_adjust();
 }
 #endif 
-  while(1)
-    tracking_pid();
+	low_start();
+	unsigned long _final_time = millis();
+	while(millis() - _final_time < 3000)
+		tracking_pid();
+    
+	do{
+		tracking_pid();
+		read7sensor();
+	}while(S1+S2+S3+S4+S5+S6+S7);
+
+	motor.mot(200,200);
+	delay(500);
+	motor.mot(0,0);
+
+  	delay(3000);
 }

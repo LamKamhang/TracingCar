@@ -29,3 +29,12 @@ void loop()
 {
   Serial.println(scan()+0);
 }
+
+
+// if (check_target)
+// {
+//   catch
+// }
+// else{
+//   not catch
+// }

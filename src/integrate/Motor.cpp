@@ -64,12 +64,12 @@ void Motor::normal_backward()
 
 void Motor::fast_left()
 {
-    mot(-100, 255);
+    mot(-100, 200);
 }
 
 void Motor::fast_right()
 {
-    mot(255, -100);
+    mot(200, -100);
 }
 
 void Motor::normal_left()
