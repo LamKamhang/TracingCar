@@ -37,7 +37,7 @@ const int grey_c = 20;		//后方传感器
 
 int S1, S2, S3, S4, S5, S6, S7, Sa, Sb;		//七路巡线返回值
 int C1, C2, C3, C4, C5, C6, C7, Ca, Cb;	 //返回值确认
-
+////////////////////////////////////////////////////////////
 int servo_state[6];
 int reset_state[6] = { 86,110,70,155,14,32 };
 
@@ -60,7 +60,7 @@ const int delay_time = 3;		//定义延时时间
 
 int stop_state;		//定义停止变量
 int end_of_race;	//判定比赛是否结束
-
+//////////////////////////////////////////////////////////
 const unsigned char gray_id_1 = 1;
 const unsigned char gray_id_2 = 1 << 1;
 const unsigned char gray_id_3 = 1 << 2;
