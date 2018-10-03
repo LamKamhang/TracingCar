@@ -28,6 +28,11 @@ int PID::get_output(int state)
     return (int)(Kp*input + Ki*integral + Kd*diff);
 }
 
+void PID::reset(void)
+{
+    integral = 0;
+    preInput = 0;
+}
 
 int PID::cal_deviation(int state)
 {

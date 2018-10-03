@@ -279,7 +279,7 @@ float measure()
 //避障判断函数
 void avoid()
 {
-	float distance = measure();
+	float distance;
 	while(1)
 	{
 		tracking_pid();
@@ -295,10 +295,13 @@ void avoid()
 					break;
 			}
 		}
+		// 5需要再调一调，500也要调一调
 		else if (distance < 5)
 		{
 			motor.mot(-200, -200);
 			delay(500);
+			avoid_Barrier();
+			break;
 		}
 	}
 }
@@ -313,6 +316,7 @@ void avoid_Barrier()
 	motor.mot(200,-100);
 	delay(1200);
   	motor.mot(200,200);
+  	delay(500);
 	// while (1)
 	// {
 	// 	readsensor();
@@ -354,6 +358,7 @@ void run(void)
 		tracking_pid();
 
 	avoid();
+	pid.reset();
 
 #ifdef _STOP_2_FLAG_
 {

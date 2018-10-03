@@ -18,6 +18,7 @@ class PID
 public:
     PID();
     PID(double Kp, double Ki, double Kd);
+    void reset(void);
     int get_output(int state);
 
 private:
