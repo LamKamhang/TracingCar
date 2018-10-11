@@ -54,8 +54,8 @@ int PID::cal_deviation(int state)
             break;
         // 稍微偏右
         case G0001100://45
-        case G0011110:
-        case G0111111:
+        //case G0011110:
+        //case G0111111:
             input =  _SLIGHT_RIGHT_;
             break;
         // 正常偏左：
@@ -65,7 +65,7 @@ int PID::cal_deviation(int state)
             break;
         // 正常偏右：
         case G0001110://456
-        case G0011111:
+        //case G0011111:
             input =  _MODERATE_RIGHT_;
             break;
         // 严重偏左：
@@ -77,7 +77,7 @@ int PID::cal_deviation(int state)
         // 严重偏右
         case G0000110:
         case G0000111:
-        case G0001111://67
+        //case G0001111://67
             input =  _SERIOUS_RIGHT_;
             break;
         // 极度偏左
