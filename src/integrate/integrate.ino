@@ -33,7 +33,7 @@ int end_of_place=0;
 int servo_state[5];
 int first_catch_state[5] = { 130,101,64,79,27 };
 int second_catch_state[5] = { 130,65,113,72,27 };
-int first_place_state[5] = { 130,95,88,86,27 };
+int first_place_state[5] = { 130,95,89,86,27 };
 int middle_place_state[5] = {130,108,63,86,27};
 int second_place_state[5] = { 130,119,43,93,27 };
 
@@ -116,7 +116,7 @@ void setup() {
 	scanM.init();
 	define_servo(first_catch_state[0], first_catch_state[1], first_catch_state[2],
 		first_catch_state[3], first_catch_state[4], false);
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		servo_state[i] = first_catch_state[i];
 	}
@@ -127,28 +127,29 @@ void setup() {
 }
 
 void loop(){
+	//motor.mot(200,-200);
 	run();
+	// // read7sensor();
+	// Serial.print(S1);
+	// Serial.print(S2);
+	// Serial.print(S3);
+	// Serial.print(S4);
+	// Serial.print(S5);
+	// Serial.print(S6);
+	// Serial.print(S7);
+	// Serial.println();
 
-	//read7sensor();
-	//Serial.print(S1);
-	//Serial.print(S2);
-	//Serial.print(S3);
-	//Serial.print(S4);
-	//Serial.print(S5);
-	//Serial.print(S6);
-	//Serial.print(S7);
-	//Serial.println();
+	// read3sensor();
+	// Serial.print(Sa);
+	// Serial.print(Sb);
+	// Serial.print(Sc);
+	// Serial.println();
 
-	//read3sensor();
-	//Serial.print(Sa);
-	//Serial.print(Sb);
-	//Serial.print(Sc);
-	//Serial.println();
-
-	//read2sensor();
-	//Serial.print(Sl);
-	//Serial.print(Sr);
-	//Serial.println();
+	// read2sensor();
+	// Serial.print(Sl);
+	// Serial.print(Sr);
+	// Serial.println();
+	// delay(1000);
 
 	//tracking_pid();
 
@@ -156,7 +157,7 @@ void loop(){
 
 	//avoid();
 
-	Serial.println(scanM.scan() + 0);
+	//Serial.println(scanM.scan() + 0);
 
 	//avoid_adjust();
 	//slight_adjust();
@@ -304,17 +305,17 @@ void define_plate(char order)
 	int d;
 	int t;
 	int speed=10;
-	//for (int i = 0; i < order; i++)
-	//{
-	//	d = abs(target_state[i] - plate_state);
-	//	servo.moveServo(5, target_state[i], speed);
-	//	t = d * 112 / speed;
-	//	delay(t);
-	//}
-	d = abs(target_state[order-1] - plate_state);
-	servo.moveServo(5, target_state[order - 1], speed);
-	t = d * 112 / speed;
-	delay(t);
+	for (int i = 0; i < order; i++)
+	{
+		d = abs(target_state[i] - plate_state);
+		servo.moveServo(5, target_state[i], speed);
+		t = d * 112 / speed;
+		delay(t);
+	}
+	// d = abs(target_state[order-1] - plate_state);
+	// servo.moveServo(5, target_state[order - 1], speed);
+	// t = d * 112 / speed;
+	// delay(t);
 	plate_state = target_state[order - 1];
 }
 
@@ -618,11 +619,14 @@ void catch_first()
 	char res;
 	first_catch_servo();
 	res = scans();
+	Serial.print("catch_first res: ");
+	Serial.println(res+0);
 	if (res > 0 )
 	{
 		define_plate(res);
 		servo.runActionGroup(2);
-		delay(6500);
+		// 3400
+		delay(4000);
 		reset_plate();
 		count1++;
 		if (count1 == _BLOCK_NUMBER_)
@@ -638,7 +642,8 @@ void catch_second()
 	{
 		define_plate(res);
 		servo.runActionGroup(3);
-		delay(6500);
+		// 3800
+		delay(4500);
 		reset_plate();
 		count1++;
 		if (count1 == _BLOCK_NUMBER_)
@@ -657,7 +662,8 @@ void place_first()
 	{
 		define_plate(res);
 		servo.runActionGroup(1);
-		delay(10000);
+		//4800
+		delay(5500);
 		reset_plate();
 		count2++;
 		if (count2 == _BLOCK_NUMBER_)
@@ -673,8 +679,9 @@ void place_second()
 	if (res > 0)
 	{
 		define_plate(res);
-		servo.runActionGroup(1);
-		delay(12000);
+		servo.runActionGroup(0);
+		// 6600
+		delay(7500);
 		reset_plate();
 		count2++;
 		if (count2 == _BLOCK_NUMBER_)
@@ -793,11 +800,15 @@ void avoid_Barrier()
 //重复扫描函数
 char scans()
 {
-	char res;
+  // ignore the first scan.
+    scanM.scan();
+  //Serial.println("enter scans function");
+	char res = 0;
 	int order[] = { -1,-1,-1,4,1,1 };
 	for (int i = 0; i < 6; i++)
 	{
 		res = scanM.scan();
+    //Serial.print(i);Serial.print(" time:");Serial.println(res+0);
 		if (res == -1)
 			break;
 		else if (res > 0)
@@ -807,6 +818,8 @@ char scans()
 				servo_state[3] + order[i], servo_state[4],true);
 	}
 	scanM.reset();
+//	Serial.print("result res : ");
+//	Serial.println(res+0);
 	return res;
 }
 
@@ -827,6 +840,8 @@ void run(void)
 	first_place_servo();
 	pid.reset();
 #endif
+
+#ifdef _BARRIER_FLAG_
 	low_start();
 	unsigned long _some_time = millis();
 	while (millis() - _some_time < _BARRIER_TIME)
@@ -836,6 +851,7 @@ void run(void)
 	barriar_time = millis();
 	avoid();
 	pid.reset();
+#endif
 
 #ifdef _STOP_2_FLAG_
 	{
@@ -849,8 +865,11 @@ void run(void)
 		}
 		adjust();
 		place_adjust();
+		pid.reset();
 	}
 #endif 
+
+#ifdef _FINAL_FLAG_
 	low_start();
 	unsigned long _final_time = millis();
 	while (millis() - _final_time < 3000)
@@ -864,6 +883,7 @@ void run(void)
 	motor.mot(200, 200);
 	delay(500);
 	motor.mot(0, 0);
+#endif 
 
 	while (1) {}
 }

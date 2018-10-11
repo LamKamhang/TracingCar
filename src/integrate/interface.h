@@ -1,11 +1,13 @@
 #pragma once
 
 // 特殊状态的标记
+// #define _BARRIER_FLAG_
+// #define _FINAL_FLAG_
 #define _LOW_START_FLAG_
 #define _STOP_1_FLAG_
 #define _STOP_1_READY_TIME_ 3500
 
-#define _STOP_2_FLAG_
+// #define _STOP_2_FLAG_
 #define _STOP_2_READY_TIME_ 1000
 
 #define _ADJUST_TIME 1500
@@ -15,11 +17,11 @@
 #define _SOME_READY_TIME 5000
 
 //抓取个数
-#define _BLOCK_NUMBER_ 3
+#define _BLOCK_NUMBER_ num_target
 
 #define _CATCH_SPEED        50
 // 夹取调整的距离时间
-#define _CATCH_BACK_TIME    1750
+#define _CATCH_BACK_TIME    1600
 #define _CATCH_FORWARD_TIME 1000
 // 放置调整的距离时间
 #define _PLACE_BACK_TIME    1200
