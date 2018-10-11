@@ -12,6 +12,12 @@ void ScanModule::init()
     mySerial.begin(9600);
 }
 
+void ScanModule::reset()
+{
+	flag_SetSeiDecMod=true;
+	flag_StaDec = false;
+}
+
 char ScanModule::run()
 {
     delay(300);
@@ -70,15 +76,16 @@ char ScanModule::scan()
 {
 	char res = 0;
 	char flag;
+	char real_flag;
 	unsigned long time = millis();
 	while (millis() - time < 1000)
 	{
-		flag = run();
-		if (flag >= '0' && flag <= '9')
-		{
-			res = check_target(flag);
-			break;
-		}
+			flag = run();
+			if (flag >= '0' && flag <= '9')
+			{
+				res = check_target(flag);
+				break;
+			}
 	}
 	return res;
 }
@@ -90,6 +97,6 @@ char ScanModule::check_target(char scan_char)
         if (target[id] == scan_char)
             return id+1;
     }
-    return 0;
+    return -1;
 }
 
