@@ -777,6 +777,8 @@ void avoid_Barrier()
 	}
 	motor.mot(-100,200);
 	delay(700);
+	motor.mot(-100,-100);
+	delay(200);
 	//motor.mot(0,0);
 	//根据所身处位置确定所使用的避障手段
 	// if (millis() - barriar_time < _BARRIER_TIME2)
