@@ -80,7 +80,6 @@ char ScanModule::scan()
 	unsigned long time = millis();
 	while (millis() - time < 1000)
 	{
-            reset();
 			flag = run();
 			if (flag >= '0' && flag <= '9')
 			{

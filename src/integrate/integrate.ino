@@ -20,7 +20,7 @@ unsigned long barriar_time;
 
 //转盘位置
 int plate_state;
-int reset_state=20;
+int reset_state=29;
 int target_state[6] = { 29,46,63,81,99,117 };
 
 //夹取和放置次数
@@ -31,11 +31,11 @@ int end_of_place=0;
 
 //机械臂位置
 int servo_state[5];
-int first_catch_state[5] = { 130,101,64,79,27 };
-int second_catch_state[5] = { 130,65,113,72,27 };
-int first_place_state[5] = { 130,95,89,86,27 };
-int middle_place_state[5] = {130,108,63,86,27};
-int second_place_state[5] = { 130,119,43,93,27 };
+int first_catch_state[5] = { 126,101,64,79,27 };
+int second_catch_state[5] = { 126,65,113,72,27 };
+int first_place_state[5] = { 126,95,89,86,27 };
+int middle_place_state[5] = {126,108,63,86,27};
+int second_place_state[5] = { 126,119,44,93,27 };
 
 //PID循迹
 PID pid(40, 0.001, 20);
@@ -121,9 +121,7 @@ void setup() {
 		servo_state[i] = first_catch_state[i];
 	}
 	reset_plate();
-#ifdef _LOW_START_FLAG_
-	low_start();
-#endif
+	//avoid_Barrier();
 }
 
 void loop(){
@@ -561,7 +559,7 @@ void place_adjust()
 	slight_adjust();
 	place_first();
 	place_second();
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
 		motor.mot(_CATCH_SPEED, _CATCH_SPEED);
 		delay(_PLACE_FORWARD_TIME);
@@ -576,18 +574,18 @@ void place_adjust()
 		if (end_of_place == 1)
 			break;
 
-		motor.mot(_CATCH_SPEED, _CATCH_SPEED);
-		delay(_PLACE_FORWARD_TIME);
-		motor.mot(-10, -10);
-		delay(10);
-		motor.mot(0, 0);
-		slight_adjust();
-		place_first();
-		if (end_of_place == 1)
-			break;
-		place_second();
-		if (end_of_place == 1)
-			break;
+		// motor.mot(_CATCH_SPEED, _CATCH_SPEED);
+		// delay(_PLACE_FORWARD_TIME);
+		// motor.mot(-10, -10);
+		// delay(10);
+		// motor.mot(0, 0);
+		// slight_adjust();
+		// place_first();
+		// if (end_of_place == 1)
+		// 	break;
+		// place_second();
+		// if (end_of_place == 1)
+		// 	break;
 	}
 }
 void catch_adjust()
@@ -599,6 +597,7 @@ void catch_adjust()
 	motor.mot(0, 0);
 	slight_adjust();
 	catch_first();
+	catch_second();
 	for (int i = 0; i < 4; ++i)
 	{
 		motor.mot(_CATCH_SPEED, _CATCH_SPEED);
@@ -608,6 +607,9 @@ void catch_adjust()
 		motor.mot(0, 0);
 		slight_adjust();
 		catch_first();
+		if (end_of_catch == 1)
+			break;
+		catch_second();
 		if (end_of_catch == 1)
 			break;
 	}
@@ -663,7 +665,7 @@ void place_first()
 		define_plate(res);
 		servo.runActionGroup(1);
 		//4800
-		delay(5500);
+		delay(5800);
 		reset_plate();
 		count2++;
 		if (count2 == _BLOCK_NUMBER_)
@@ -681,7 +683,7 @@ void place_second()
 		define_plate(res);
 		servo.runActionGroup(0);
 		// 6600
-		delay(7500);
+		delay(7600);
 		reset_plate();
 		count2++;
 		if (count2 == _BLOCK_NUMBER_)
@@ -761,40 +763,55 @@ void avoid_Barrier()
 	//直行
   	motor.mot(200,200);
 	delay(_STRAIGHT_TIME2);
-	//根据所身处位置确定所使用的避障手段
-	if (millis() - barriar_time < _BARRIER_TIME)
-	{
-		motor.mot(200, -100);
-		delay(_LAST_ROTATION_TIME);
-	}
-	motor.mot(200, 200);
-	while (1)
-	 {
-		int flag = 0;
-	 	read7sensor();
-		read3sensor();
-	 	if ((S1+S2+S3+S4+S5+S6+S7)==0 && Sa == BLACK)
-	 	{
-	 		read7sensor();
-	 		if ((S1 + S2 + S3 + S4 + S5 + S6 + S7) == 0 && Sa == BLACK)
-	 		{
-	 			read7sensor();
-	 			if ((S1 + S2 + S3 + S4 + S5 + S6 + S7) == 0 && Sa == BLACK)
-	 			{
-					motor.mot(-100, -100);
-					delay(50);
-					motor.mot(-200,200);
-					break;
-	 			}
-	 		}
-	 	}
-	 }
+	// 旋转
+	motor.mot(200,-100);
+	delay(_LAST_ROTATION_TIME);
+	// 旋转
 	while (1)
 	{
+		motor.mot(100,100);
+		delay(100);
 		read7sensor();
-		if ((S1 + S2 + S3 + S4 ) > 1)
+		if (S1+S2+S3+S4+S5+S6+S7 >= 2)
 			break;
 	}
+	motor.mot(-100,200);
+	delay(700);
+	//motor.mot(0,0);
+	//根据所身处位置确定所使用的避障手段
+	// if (millis() - barriar_time < _BARRIER_TIME2)
+	// {
+	// 	motor.mot(200, -100);
+	// 	delay(_LAST_ROTATION_TIME);
+	// }
+	// motor.mot(200, 200);
+	// while (1)
+	//  {
+	// 	int flag = 0;
+	//  	read7sensor();
+	// 	read3sensor();
+	//  	if ((S1+S2+S3+S4+S5+S6+S7)==0 && Sa == BLACK)
+	//  	{
+	//  		read7sensor();
+	//  		if ((S1 + S2 + S3 + S4 + S5 + S6 + S7) == 0 && Sa == BLACK)
+	//  		{
+	//  			read7sensor();
+	//  			if ((S1 + S2 + S3 + S4 + S5 + S6 + S7) == 0 && Sa == BLACK)
+	//  			{
+	// 				motor.mot(-100, -100);
+	// 				delay(50);
+	// 				motor.mot(-200,200);
+	// 				break;
+	//  			}
+	//  		}
+	//  	}
+	//  }
+	// while (1)
+	// {
+	// 	read7sensor();
+	// 	if ((S1 + S2 + S3 + S4 ) > 1)
+	// 		break;
+	// }
 }
 
 //重复扫描函数
@@ -827,6 +844,7 @@ char scans()
 void run(void)
 {
 #ifdef _STOP_1_FLAG_
+	low_start();
 	unsigned long _stop_1_time = millis();
 	while (millis() - _stop_1_time < _STOP_1_READY_TIME_)
 		tracking_pid();
@@ -839,6 +857,8 @@ void run(void)
 	catch_adjust();
 	first_place_servo();
 	pid.reset();
+	motor.mot(150,150);
+	delay(500);
 #endif
 
 #ifdef _BARRIER_FLAG_
